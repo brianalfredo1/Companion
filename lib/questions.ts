@@ -54,16 +54,11 @@ export const QUESTIONS = [
   "If we could teleport anywhere right now, where to?",
 ] as const;
 
-export function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+export { localDateKey as todayKey } from "./dates";
 
 export function questionForDate(dateStr: string): string {
-  // Stable hash of YYYY-MM-DD so the question rotates daily but is the same
-  // for both partners.
-  let hash = 0;
-  for (let i = 0; i < dateStr.length; i++) {
-    hash = (hash * 31 + dateStr.charCodeAt(i)) >>> 0;
-  }
-  return QUESTIONS[hash % QUESTIONS.length];
+  // Sequential rotation by day number: same question for both partners,
+  // and no repeats within QUESTIONS.length days.
+  const dayNumber = Math.floor(Date.parse(dateStr + "T00:00:00Z") / 86400000);
+  return QUESTIONS[((dayNumber % QUESTIONS.length) + QUESTIONS.length) % QUESTIONS.length];
 }

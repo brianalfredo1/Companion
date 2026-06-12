@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { fetchTotalPoints, getRankInfo } from "@/lib/points";
+import { localDateKey } from "@/lib/dates";
 import { SectionLabel } from "@/components/Shell";
 import type { Countdown, DateNight, Goal, Note } from "@/lib/types";
 
@@ -31,7 +32,7 @@ export default function DashboardPage() {
 
   const load = useCallback(async () => {
     if (!roomId || !userId) return;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateKey();
     const [
       points,
       noteRes,
@@ -203,7 +204,7 @@ export default function DashboardPage() {
         {/* Rank card */}
         <Link
           href="/rank"
-          className="mb-7 block rounded-2xl border border-neutral-200 p-4"
+          className="mb-7 block rounded-2xl border border-neutral-200 p-4 transition-transform active:scale-[0.98]"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -420,7 +421,7 @@ function DashCard({
   return (
     <Link
       href={href}
-      className="flex items-center justify-between rounded-2xl border border-neutral-200 p-4"
+      className="flex items-center justify-between rounded-2xl border border-neutral-200 p-4 transition-transform active:scale-[0.98]"
     >
       <div className="flex items-center gap-3">
         <span className="text-xl">{emoji}</span>

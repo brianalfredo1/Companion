@@ -7,6 +7,13 @@ import { supabase } from "@/lib/supabase";
 
 type Step = "account" | "room" | "invite-created" | "confirm-email";
 
+function errMsg(err: unknown, fallback: string): string {
+  if (err && typeof err === "object" && "message" in err) {
+    return String((err as { message: unknown }).message);
+  }
+  return fallback;
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("account");
@@ -55,6 +62,7 @@ export default function SignupPage() {
     if (error) throw error;
   }
 
+
   async function handleAccount(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -69,7 +77,7 @@ export default function SignupPage() {
       await ensureProfile();
       setStep("room");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(errMsg(err, "Something went wrong"));
     } finally {
       setBusy(false);
     }
@@ -85,7 +93,7 @@ export default function SignupPage() {
       setCreatedCode(data as string);
       setStep("invite-created");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create room");
+      setError(errMsg(err, "Could not create room"));
     } finally {
       setBusy(false);
     }
@@ -107,7 +115,7 @@ export default function SignupPage() {
       }
       router.replace("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not join room");
+      setError(errMsg(err, "Could not join room"));
     } finally {
       setBusy(false);
     }
@@ -178,6 +186,12 @@ export default function SignupPage() {
           </form>
         ) : step === "room" ? (
           <div className="space-y-6">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              className={inputClass}
+            />
             <button
               onClick={handleCreateRoom}
               disabled={busy}

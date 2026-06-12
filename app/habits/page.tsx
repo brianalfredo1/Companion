@@ -5,12 +5,13 @@ import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
 import { POINTS } from "@/lib/points";
+import { localDateKey } from "@/lib/dates";
 import Shell, { Loading, SectionLabel } from "@/components/Shell";
 import { useAward } from "@/components/useAward";
 import type { Habit } from "@/lib/types";
 
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return localDateKey();
 }
 
 export default function HabitsPage() {
@@ -189,7 +190,7 @@ function HabitRow({
   return (
     <button
       onClick={onToggle}
-      className="flex w-full items-center justify-between rounded-2xl border border-neutral-200 p-4 text-left"
+      className="flex w-full items-center justify-between rounded-2xl border border-neutral-200 p-4 text-left transition-transform active:scale-[0.98]"
     >
       <div className="flex items-center gap-3">
         <span className="text-xl">{emoji}</span>
