@@ -4,15 +4,52 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
-import Shell, { Empty, Loading } from "@/components/Shell";
+import Shell, { Empty, Loading, SectionLabel } from "@/components/Shell";
+import { useToast } from "@/components/Toast";
 import type { Countdown } from "@/lib/types";
 
+const LABEL_IDEAS = ["Next meetup 🥺", "Anniversary 🤍", "Birthday 🎂", "Trip ✈️"];
+
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function CountdownsPage() {
-  const { loading, roomId } = useProfile();
+  const { loading, roomId, room } = useProfile();
+  const { showToast } = useToast();
   const [items, setItems] = useState<Countdown[] | null>(null);
   const [label, setLabel] = useState("");
   const [date, setDate] = useState("");
   const [busy, setBusy] = useState(false);
+  const [annDraft, setAnnDraft] = useState("");
+  const [annEditing, setAnnEditing] = useState(false);
+  const [annSaving, setAnnSaving] = useState(false);
+  const [anniversary, setAnniversary] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (room) {
+      setAnniversary(room.anniversary);
+      if (room.anniversary) setAnnDraft(toLocalInput(room.anniversary));
+    }
+  }, [room]);
+
+  async function saveAnniversary() {
+    if (!roomId || !annDraft || annSaving) return;
+    setAnnSaving(true);
+    const iso = new Date(annDraft).toISOString();
+    const { error } = await supabase
+      .from("couple_rooms")
+      .update({ anniversary: iso })
+      .eq("id", roomId);
+    if (!error) {
+      setAnniversary(iso);
+      setAnnEditing(false);
+      showToast("🤍 Together-since date saved");
+    }
+    setAnnSaving(false);
+  }
 
   const load = useCallback(async () => {
     if (!roomId) return;
@@ -55,8 +92,69 @@ export default function CountdownsPage() {
     );
   }
 
+  const together = anniversary
+    ? (() => {
+        const ms = Math.max(0, Date.now() - new Date(anniversary).getTime());
+        return {
+          days: Math.floor(ms / 86400000),
+          hours: Math.floor((ms % 86400000) / 3600000),
+        };
+      })()
+    : null;
+
   return (
     <Shell title="Countdowns" subtitle="Things worth waiting for">
+      {/* Together since */}
+      <SectionLabel>Together since</SectionLabel>
+      <div className="mb-6 rounded-2xl border border-rose-100 bg-rose-50 p-4">
+        {together && !annEditing ? (
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-semibold text-rose-700">
+                {together.days} days · {together.hours} hours 🤍
+              </p>
+              <p className="text-xs text-rose-400">
+                since{" "}
+                {new Date(anniversary!).toLocaleString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+            <button
+              onClick={() => setAnnEditing(true)}
+              className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-rose-600"
+            >
+              Edit
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-rose-700">
+              When did you two become <em>us</em>?
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="datetime-local"
+                value={annDraft}
+                onChange={(e) => setAnnDraft(e.target.value)}
+                className="flex-1 rounded-full border border-rose-200 bg-white px-4 py-2.5 text-sm text-neutral-700 outline-none focus:border-rose-400"
+              />
+              <button
+                onClick={saveAnniversary}
+                disabled={annSaving || !annDraft}
+                className="rounded-full bg-rose-500 px-4 text-sm font-medium text-white disabled:opacity-50"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <form
         onSubmit={add}
         className="mb-6 space-y-2 rounded-2xl border border-neutral-200 p-4"
@@ -67,6 +165,22 @@ export default function CountdownsPage() {
           placeholder="What are we counting down to?"
           className="w-full rounded-full border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-400"
         />
+        <div className="flex flex-wrap gap-2">
+          {LABEL_IDEAS.map((idea) => (
+            <button
+              key={idea}
+              type="button"
+              onClick={() => setLabel(idea)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium ${
+                label === idea
+                  ? "bg-neutral-900 text-white"
+                  : "bg-neutral-100 text-neutral-500"
+              }`}
+            >
+              {idea}
+            </button>
+          ))}
+        </div>
         <div className="flex gap-2">
           <input
             type="date"

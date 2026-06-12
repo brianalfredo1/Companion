@@ -9,6 +9,14 @@ import Shell, { Empty, Loading, SectionLabel } from "@/components/Shell";
 import { useAward } from "@/components/useAward";
 import type { ChecklistItem, DateNight } from "@/lib/types";
 
+const DATE_IDEAS = [
+  "Movie night 🎬",
+  "Dinner date 🍝",
+  "Picnic 🧺",
+  "Game night 🎲",
+  "Video call date 💻",
+];
+
 export default function DateNightPage() {
   const { loading, userId, roomId } = useProfile();
   const award = useAward();
@@ -107,6 +115,22 @@ export default function DateNightPage() {
           placeholder="Date night idea…"
           className="w-full rounded-full border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-rose-400"
         />
+        <div className="flex flex-wrap gap-2">
+          {DATE_IDEAS.map((idea) => (
+            <button
+              key={idea}
+              type="button"
+              onClick={() => setTitle(idea)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium ${
+                title === idea
+                  ? "bg-rose-500 text-white"
+                  : "bg-neutral-100 text-neutral-500"
+              }`}
+            >
+              {idea}
+            </button>
+          ))}
+        </div>
         <div className="flex gap-2">
           <input
             type="datetime-local"

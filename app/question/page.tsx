@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
-import { questionForDate, todayKey } from "@/lib/questions";
+import { questionForDate } from "@/lib/questions";
+import { roomDateKey } from "@/lib/dates";
 import { POINTS } from "@/lib/points";
 import { useAward } from "@/components/useAward";
 import Shell, { Loading, SectionLabel } from "@/components/Shell";
@@ -17,14 +18,14 @@ interface Answer {
 }
 
 export default function QuestionPage() {
-  const { loading, userId, profile, partner, roomId } = useProfile();
+  const { loading, userId, profile, partner, roomId, room } = useProfile();
   const award = useAward();
   const [answers, setAnswers] = useState<Answer[] | null>(null);
   const [history, setHistory] = useState<Answer[] | null>(null);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const today = todayKey();
+  const today = roomDateKey(room?.timezone);
   const question = questionForDate(today);
 
   const load = useCallback(async () => {

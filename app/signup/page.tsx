@@ -89,7 +89,9 @@ export default function SignupPage() {
     setBusy(true);
     try {
       await ensureProfile();
-      const { data, error } = await supabase.rpc("create_room");
+      const { data, error } = await supabase.rpc("create_room", {
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone ?? null,
+      });
       if (error) throw error;
       setCreatedCode(data as string);
       setStep("invite-created");

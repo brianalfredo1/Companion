@@ -1,3 +1,11 @@
+export interface CoupleRoom {
+  id: string;
+  invite_code: string;
+  timezone: string | null;
+  anniversary: string | null;
+  created_at: string;
+}
+
 export interface Profile {
   id: string;
   name: string;

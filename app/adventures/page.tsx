@@ -9,6 +9,14 @@ import Shell, { Empty, Loading, SectionLabel } from "@/components/Shell";
 import { useAward } from "@/components/useAward";
 import type { Adventure } from "@/lib/types";
 
+const ADVENTURE_IDEAS = [
+  "Watch a sunset together 🌅",
+  "Road trip 🚗",
+  "Try a new cuisine 🍱",
+  "Hike a mountain ⛰️",
+  "See the northern lights ✨",
+];
+
 export default function AdventuresPage() {
   const { loading, userId, roomId } = useProfile();
   const award = useAward();
@@ -71,20 +79,38 @@ export default function AdventuresPage() {
 
   return (
     <Shell title="Our adventures" subtitle="The bucket list">
-      <form onSubmit={add} className="mb-6 flex gap-2">
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Add an adventure…"
-          className="flex-1 rounded-full border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-400"
-        />
-        <button
-          type="submit"
-          disabled={busy || !title.trim()}
-          className="rounded-full bg-neutral-900 px-5 text-sm font-medium text-white disabled:opacity-50"
-        >
-          Add
-        </button>
+      <form onSubmit={add} className="mb-6 space-y-2">
+        <div className="flex gap-2">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Add an adventure…"
+            className="flex-1 rounded-full border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-400"
+          />
+          <button
+            type="submit"
+            disabled={busy || !title.trim()}
+            className="rounded-full bg-neutral-900 px-5 text-sm font-medium text-white disabled:opacity-50"
+          >
+            Add
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {ADVENTURE_IDEAS.map((idea) => (
+            <button
+              key={idea}
+              type="button"
+              onClick={() => setTitle(idea)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium ${
+                title === idea
+                  ? "bg-neutral-900 text-white"
+                  : "bg-neutral-100 text-neutral-500"
+              }`}
+            >
+              {idea}
+            </button>
+          ))}
+        </div>
       </form>
 
       {!items || loading ? (

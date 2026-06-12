@@ -5,18 +5,15 @@ import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
 import { POINTS } from "@/lib/points";
-import { localDateKey } from "@/lib/dates";
+import { roomDateKey } from "@/lib/dates";
 import Shell, { Loading, SectionLabel } from "@/components/Shell";
 import { useAward } from "@/components/useAward";
 import type { Habit } from "@/lib/types";
 
-function todayStr() {
-  return localDateKey();
-}
-
 export default function HabitsPage() {
-  const { loading, userId, profile, partner, roomId } = useProfile();
+  const { loading, userId, profile, partner, roomId, room } = useProfile();
   const award = useAward();
+  const today = roomDateKey(room?.timezone);
   const [mine, setMine] = useState<Habit | null>(null);
   const [theirs, setTheirs] = useState<Habit | null>(null);
   const [fetched, setFetched] = useState(false);
@@ -28,12 +25,12 @@ export default function HabitsPage() {
       .from("habits")
       .select("*")
       .eq("room_id", roomId)
-      .eq("date", todayStr());
+      .eq("date", today);
     const rows = (data ?? []) as Habit[];
     setMine(rows.find((r) => r.user_id === userId) ?? null);
     setTheirs(rows.find((r) => r.user_id !== userId) ?? null);
     setFetched(true);
-  }, [roomId, userId]);
+  }, [roomId, userId, today]);
 
   useEffect(() => {
     load();
@@ -45,7 +42,7 @@ export default function HabitsPage() {
     const base = mine ?? {
       room_id: roomId,
       user_id: userId,
-      date: todayStr(),
+      date: today,
       exercise_done: false,
       sleep_done: false,
       water_count: 0,
@@ -96,7 +93,7 @@ export default function HabitsPage() {
   }
 
   return (
-    <Shell title="Daily habits" subtitle={todayStr()}>
+    <Shell title="Daily habits" subtitle={today}>
       <SectionLabel>{profile?.name ?? "You"} (you)</SectionLabel>
       <div className="mb-6 space-y-3">
         <HabitRow

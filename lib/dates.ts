@@ -8,3 +8,21 @@ export function localDateKey(d: Date = new Date()): string {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
+
+/**
+ * Date key in the couple room's shared timezone. Both partners must agree on
+ * what "today" is (for habits and the daily question) even when they're in
+ * different timezones, so the room carries one canonical clock.
+ */
+export function roomDateKey(
+  timezone: string | null | undefined,
+  d: Date = new Date()
+): string {
+  if (!timezone) return localDateKey(d);
+  try {
+    // en-CA formats as YYYY-MM-DD.
+    return new Intl.DateTimeFormat("en-CA", { timeZone: timezone }).format(d);
+  } catch {
+    return localDateKey(d);
+  }
+}

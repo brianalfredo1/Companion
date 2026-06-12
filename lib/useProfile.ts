@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "./supabase";
-import type { Profile } from "./types";
+import type { CoupleRoom, Profile } from "./types";
 
 export interface ProfileState {
   loading: boolean;
@@ -11,6 +11,7 @@ export interface ProfileState {
   profile: Profile | null;
   partner: Profile | null;
   roomId: string | null;
+  room: CoupleRoom | null;
 }
 
 /**
@@ -25,6 +26,7 @@ export function useProfile(): ProfileState {
     profile: null,
     partner: null,
     roomId: null,
+    room: null,
   });
 
   useEffect(() => {
@@ -50,12 +52,19 @@ export function useProfile(): ProfileState {
         router.replace("/signup");
         return;
       }
-      const { data: partner } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("couple_room_id", profile.couple_room_id)
-        .neq("id", userId)
-        .maybeSingle();
+      const [{ data: partner }, { data: room }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("couple_room_id", profile.couple_room_id)
+          .neq("id", userId)
+          .maybeSingle(),
+        supabase
+          .from("couple_rooms")
+          .select("*")
+          .eq("id", profile.couple_room_id)
+          .maybeSingle(),
+      ]);
       if (cancelled) return;
       setState({
         loading: false,
@@ -63,6 +72,7 @@ export function useProfile(): ProfileState {
         profile,
         partner: partner ?? null,
         roomId: profile.couple_room_id,
+        room: room ?? null,
       });
     }
 

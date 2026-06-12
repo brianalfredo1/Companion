@@ -30,8 +30,21 @@ export function useRealtime(
         () => callbackRef.current()
       )
       .subscribe();
+
+    // Phones suspend the websocket when the app is backgrounded, so realtime
+    // events are missed. Refetch whenever the app comes back to life.
+    const refetch = () => {
+      if (document.visibilityState === "visible") callbackRef.current();
+    };
+    document.addEventListener("visibilitychange", refetch);
+    window.addEventListener("focus", refetch);
+    window.addEventListener("online", refetch);
+
     return () => {
       supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", refetch);
+      window.removeEventListener("focus", refetch);
+      window.removeEventListener("online", refetch);
     };
   }, [table, roomId]);
 }

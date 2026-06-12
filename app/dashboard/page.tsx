@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { fetchTotalPoints, getRankInfo } from "@/lib/points";
-import { localDateKey } from "@/lib/dates";
+import { roomDateKey } from "@/lib/dates";
 import { SectionLabel } from "@/components/Shell";
 import AppFrame from "@/components/AppFrame";
 import type { Countdown, DateNight, Goal, Note } from "@/lib/types";
@@ -28,12 +28,19 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
-  const { loading, userId, profile, partner, roomId } = useProfile();
+  const { loading, userId, profile, partner, roomId, room } = useProfile();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const roomTz = room?.timezone ?? null;
   const load = useCallback(async () => {
     if (!roomId || !userId) return;
-    const today = localDateKey();
+    const today = roomDateKey(roomTz);
     const [
       points,
       noteRes,
@@ -140,7 +147,7 @@ export default function DashboardPage() {
         (a) => a.user_id !== userId
       ),
     });
-  }, [roomId, userId]);
+  }, [roomId, userId, roomTz]);
 
   useEffect(() => {
     load();
@@ -164,14 +171,13 @@ export default function DashboardPage() {
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const daysTogether = data.firstDay
-    ? Math.max(
-        1,
-        Math.floor(
-          (Date.now() - new Date(data.firstDay).getTime()) / 86400000
-        ) + 1
-      )
-    : 1;
+  const togetherSince = room?.anniversary ?? data.firstDay;
+  const togetherMs = togetherSince
+    ? Math.max(0, now - new Date(togetherSince).getTime())
+    : 0;
+  const togetherDays = Math.floor(togetherMs / 86400000);
+  const togetherHours = Math.floor((togetherMs % 86400000) / 3600000);
+  const daysTogether = togetherDays + 1;
   const names = partner
     ? `${profile.name} & ${partner.name}`
     : profile.name;
@@ -329,9 +335,11 @@ export default function DashboardPage() {
               className="rounded-2xl border border-neutral-200 p-4"
             >
               <p className="text-2xl font-semibold text-neutral-900">
-                {daysTogether}
+                {togetherDays}
               </p>
-              <p className="mt-1 text-xs text-neutral-500">days together</p>
+              <p className="mt-1 text-xs text-neutral-500">
+                days · {togetherHours}h together
+              </p>
             </Link>
           </div>
           <DashCard

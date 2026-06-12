@@ -10,6 +10,8 @@ create extension if not exists pgcrypto;
 create table if not exists couple_rooms (
   id uuid primary key default gen_random_uuid(),
   invite_code text unique not null,
+  timezone text,
+  anniversary timestamptz,
   created_at timestamptz default now()
 );
 
@@ -162,6 +164,10 @@ create policy "members can read their room"
   on couple_rooms for select
   using (id = my_room_id());
 
+create policy "members can update their room"
+  on couple_rooms for update
+  using (id = my_room_id()) with check (id = my_room_id());
+
 create policy "read own or roommate profile"
   on profiles for select
   using (
@@ -217,7 +223,7 @@ as $$
   from generate_series(1, 6);
 $$;
 
-create or replace function create_room()
+create or replace function create_room(tz text default null)
 returns text
 language plpgsql
 security definer
@@ -233,7 +239,8 @@ begin
   loop
     code := generate_invite_code();
     begin
-      insert into couple_rooms (invite_code) values (code) returning id into rid;
+      insert into couple_rooms (invite_code, timezone) values (code, tz)
+        returning id into rid;
       exit;
     exception when unique_violation then
       -- collision: try another code
