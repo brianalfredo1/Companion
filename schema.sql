@@ -107,6 +107,16 @@ create table if not exists adventures (
   created_at timestamptz default now()
 );
 
+create table if not exists question_answers (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid references couple_rooms not null,
+  user_id uuid references profiles not null,
+  date date not null,
+  answer text not null,
+  created_at timestamptz default now(),
+  unique (user_id, date)
+);
+
 create table if not exists points_log (
   id uuid primary key default gen_random_uuid(),
   room_id uuid references couple_rooms not null,
@@ -146,6 +156,7 @@ alter table countdowns enable row level security;
 alter table goals enable row level security;
 alter table adventures enable row level security;
 alter table points_log enable row level security;
+alter table question_answers enable row level security;
 
 create policy "members can read their room"
   on couple_rooms for select
@@ -185,6 +196,8 @@ create policy "room members full access" on goals for all
 create policy "room members full access" on adventures for all
   using (room_id = my_room_id()) with check (room_id = my_room_id());
 create policy "room members full access" on points_log for all
+  using (room_id = my_room_id()) with check (room_id = my_room_id());
+create policy "room members full access" on question_answers for all
   using (room_id = my_room_id()) with check (room_id = my_room_id());
 
 -- ---------------------------------------------------------------------------
@@ -283,3 +296,4 @@ alter publication supabase_realtime add table countdowns;
 alter publication supabase_realtime add table goals;
 alter publication supabase_realtime add table adventures;
 alter publication supabase_realtime add table points_log;
+alter publication supabase_realtime add table question_answers;

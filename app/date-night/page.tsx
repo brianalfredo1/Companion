@@ -4,14 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
-import { awardPoints, POINTS } from "@/lib/points";
+import { POINTS } from "@/lib/points";
 import Shell, { Empty, Loading, SectionLabel } from "@/components/Shell";
-import { useToast } from "@/components/Toast";
+import { useAward } from "@/components/useAward";
 import type { ChecklistItem, DateNight } from "@/lib/types";
 
 export default function DateNightPage() {
   const { loading, userId, roomId } = useProfile();
-  const { showPoints } = useToast();
+  const award = useAward();
   const [dates, setDates] = useState<DateNight[] | null>(null);
   const [title, setTitle] = useState("");
   const [when, setWhen] = useState("");
@@ -82,8 +82,7 @@ export default function DateNightPage() {
       .from("date_nights")
       .update({ completed: true })
       .eq("id", date.id);
-    await awardPoints(roomId, userId, "date_night_completed");
-    showPoints(POINTS.date_night_completed, "Date night completed");
+    await award(roomId, userId, "date_night_completed", { confetti: true });
     await load();
     setBusy(false);
   }

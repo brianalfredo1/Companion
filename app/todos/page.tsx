@@ -4,14 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
-import { awardPoints, POINTS } from "@/lib/points";
 import Shell, { Empty, Loading, SectionLabel } from "@/components/Shell";
-import { useToast } from "@/components/Toast";
+import { useAward } from "@/components/useAward";
 import type { Todo } from "@/lib/types";
 
 export default function TodosPage() {
   const { loading, userId, profile, partner, roomId } = useProfile();
-  const { showPoints } = useToast();
+  const award = useAward();
   const [todos, setTodos] = useState<Todo[] | null>(null);
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState("Both");
@@ -61,8 +60,7 @@ export default function TodosPage() {
       .update({ done: !todo.done })
       .eq("id", todo.id);
     if (!todo.done) {
-      await awardPoints(roomId, userId, "todo_done");
-      showPoints(POINTS.todo_done, "To-do completed");
+      await award(roomId, userId, "todo_done");
     }
     await load();
     setBusy(false);

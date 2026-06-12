@@ -4,14 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
-import { awardPoints, POINTS } from "@/lib/points";
 import Shell, { Empty, Loading } from "@/components/Shell";
-import { useToast } from "@/components/Toast";
+import { useAward } from "@/components/useAward";
 import type { Note } from "@/lib/types";
 
 export default function NotesPage() {
   const { loading, userId, partner, roomId } = useProfile();
-  const { showPoints } = useToast();
+  const award = useAward();
   const [notes, setNotes] = useState<Note[] | null>(null);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -57,8 +56,7 @@ export default function NotesPage() {
     });
     if (!error) {
       setMessage("");
-      await awardPoints(roomId, userId, "note_sent");
-      showPoints(POINTS.note_sent, "Note sent");
+      await award(roomId, userId, "note_sent");
       load();
     }
     setSending(false);

@@ -4,14 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
-import { awardPoints, POINTS } from "@/lib/points";
+import { POINTS } from "@/lib/points";
 import Shell, { Empty, Loading, SectionLabel } from "@/components/Shell";
-import { useToast } from "@/components/Toast";
+import { useAward } from "@/components/useAward";
 import type { Adventure } from "@/lib/types";
 
 export default function AdventuresPage() {
   const { loading, userId, roomId } = useProfile();
-  const { showPoints } = useToast();
+  const award = useAward();
   const [items, setItems] = useState<Adventure[] | null>(null);
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
@@ -55,8 +55,7 @@ export default function AdventuresPage() {
       })
       .eq("id", item.id);
     if (!item.done) {
-      await awardPoints(roomId, userId, "adventure_done");
-      showPoints(POINTS.adventure_done, "Adventure completed");
+      await award(roomId, userId, "adventure_done", { confetti: true });
     }
     await load();
     setBusy(false);

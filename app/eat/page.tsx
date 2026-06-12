@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
-import { awardPoints, POINTS } from "@/lib/points";
+import { POINTS } from "@/lib/points";
 import Shell, { Empty, Loading, SectionLabel } from "@/components/Shell";
+import { useAward } from "@/components/useAward";
 import { useToast } from "@/components/Toast";
 import type { EatItem } from "@/lib/types";
 
@@ -13,11 +14,14 @@ const CATEGORIES = ["Restaurant", "Street food", "Cafe", "Cook at home"];
 
 export default function EatPage() {
   const { loading, userId, roomId } = useProfile();
-  const { showPoints } = useToast();
+  const award = useAward();
+  const { celebrate } = useToast();
   const [items, setItems] = useState<EatItem[] | null>(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [busy, setBusy] = useState(false);
+  const [pick, setPick] = useState<string | null>(null);
+  const [picking, setPicking] = useState(false);
 
   const load = useCallback(async () => {
     if (!roomId) return;
@@ -57,8 +61,7 @@ export default function EatPage() {
       .update({ visited_together: !item.visited_together })
       .eq("id", item.id);
     if (!item.visited_together) {
-      await awardPoints(roomId, userId, "ate_together");
-      showPoints(POINTS.ate_together, "Ate together");
+      await award(roomId, userId, "ate_together");
     }
     await load();
     setBusy(false);
@@ -71,6 +74,21 @@ export default function EatPage() {
 
   const toTry = (items ?? []).filter((i) => !i.visited_together);
   const visited = (items ?? []).filter((i) => i.visited_together);
+
+  function decideForUs() {
+    if (toTry.length < 2 || picking) return;
+    setPicking(true);
+    let spins = 0;
+    const interval = setInterval(() => {
+      setPick(toTry[Math.floor(Math.random() * toTry.length)].title);
+      spins++;
+      if (spins > 14) {
+        clearInterval(interval);
+        setPicking(false);
+        celebrate();
+      }
+    }, 90);
+  }
 
   return (
     <Shell title="What do we eat?" subtitle="Cravings & places to try">
@@ -105,6 +123,27 @@ export default function EatPage() {
           </button>
         </div>
       </form>
+
+      {toTry.length >= 2 && (
+        <div className="mb-6">
+          <button
+            onClick={decideForUs}
+            disabled={picking}
+            className="w-full rounded-full border border-amber-200 bg-amber-50 py-2.5 text-sm font-medium text-amber-700 disabled:opacity-70"
+          >
+            🎲 Decide for us
+          </button>
+          {pick && (
+            <p
+              className={`mt-2 text-center text-sm ${
+                picking ? "text-neutral-400" : "font-semibold text-amber-700"
+              }`}
+            >
+              {picking ? pick : `Tonight we eat: ${pick} 🍜`}
+            </p>
+          )}
+        </div>
+      )}
 
       {!items || loading ? (
         <Loading />

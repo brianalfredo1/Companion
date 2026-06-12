@@ -40,6 +40,7 @@ export const POINTS = {
   date_night_completed: 40,
   adventure_done: 50,
   goal_milestone: 30,
+  daily_question: 10,
 } as const;
 
 export const ACTION_LABELS: Record<string, string> = {
@@ -53,6 +54,7 @@ export const ACTION_LABELS: Record<string, string> = {
   date_night_completed: "Date night completed",
   adventure_done: "Adventure completed",
   goal_milestone: "Goal milestone reached",
+  daily_question: "Question answered together",
 };
 
 export async function awardPoints(

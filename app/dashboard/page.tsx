@@ -21,6 +21,8 @@ interface DashboardData {
   adventuresDone: number;
   adventuresTotal: number;
   firstDay: string | null;
+  questionAnsweredByMe: boolean;
+  questionAnsweredByThem: boolean;
 }
 
 export default function DashboardPage() {
@@ -42,6 +44,7 @@ export default function DashboardPage() {
       goalRes,
       advRes,
       profileRes,
+      questionRes,
     ] = await Promise.all([
       fetchTotalPoints(roomId),
       supabase
@@ -101,6 +104,11 @@ export default function DashboardPage() {
         .eq("couple_room_id", roomId)
         .order("created_at", { ascending: true })
         .limit(1),
+      supabase
+        .from("question_answers")
+        .select("user_id")
+        .eq("room_id", roomId)
+        .eq("date", today),
     ]);
 
     const habit = habitRes.data?.[0];
@@ -123,6 +131,12 @@ export default function DashboardPage() {
       adventuresDone: adventures.filter((a) => a.done).length,
       adventuresTotal: adventures.length,
       firstDay: profileRes.data?.[0]?.created_at ?? null,
+      questionAnsweredByMe: (questionRes.data ?? []).some(
+        (a) => a.user_id === userId
+      ),
+      questionAnsweredByThem: (questionRes.data ?? []).some(
+        (a) => a.user_id !== userId
+      ),
     });
   }, [roomId, userId]);
 
@@ -229,6 +243,21 @@ export default function DashboardPage() {
                 </span>
               </Link>
             )}
+            <DashCard
+              href="/question"
+              emoji="💬"
+              accent="text-indigo-600"
+              title="Question of the day"
+              detail={
+                data.questionAnsweredByMe && data.questionAnsweredByThem
+                  ? "Both answered ✓"
+                  : data.questionAnsweredByMe
+                    ? `Waiting for ${partner?.name ?? "your person"}…`
+                    : data.questionAnsweredByThem
+                      ? `${partner?.name ?? "Your person"} answered — your turn!`
+                      : "Answer today's question"
+              }
+            />
             <DashCard
               href="/habits"
               emoji="🌿"

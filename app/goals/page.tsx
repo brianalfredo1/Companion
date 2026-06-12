@@ -4,18 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
-import {
-  awardPoints,
-  milestonesCrossed,
-  POINTS,
-} from "@/lib/points";
+import { milestonesCrossed, POINTS } from "@/lib/points";
 import Shell, { Empty, Loading, SectionLabel } from "@/components/Shell";
-import { useToast } from "@/components/Toast";
+import { useAward } from "@/components/useAward";
 import type { Goal } from "@/lib/types";
 
 export default function GoalsPage() {
   const { loading, userId, roomId } = useProfile();
-  const { showPoints } = useToast();
+  const award = useAward();
   const [goals, setGoals] = useState<Goal[] | null>(null);
   const [title, setTitle] = useState("");
   const [targetDate, setTargetDate] = useState("");
@@ -60,10 +56,9 @@ export default function GoalsPage() {
       await supabase.from("goals").update({ progress: next }).eq("id", goal.id);
       const crossed = milestonesCrossed(prev, next);
       for (let i = 0; i < crossed; i++) {
-        await awardPoints(roomId, userId, "goal_milestone");
-      }
-      if (crossed > 0) {
-        showPoints(POINTS.goal_milestone * crossed, "Goal milestone reached");
+        await award(roomId, userId, "goal_milestone", {
+          confetti: next >= 100,
+        });
       }
       await load();
     }

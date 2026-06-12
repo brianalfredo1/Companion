@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
-import { awardPoints, POINTS } from "@/lib/points";
+import { POINTS } from "@/lib/points";
 import Shell, { Empty, Loading, SectionLabel } from "@/components/Shell";
+import { useAward } from "@/components/useAward";
 import { useToast } from "@/components/Toast";
 import type { WatchItem } from "@/lib/types";
 
@@ -13,11 +14,14 @@ const TYPES = ["Movie", "Show"];
 
 export default function WatchlistPage() {
   const { loading, userId, roomId } = useProfile();
-  const { showPoints } = useToast();
+  const award = useAward();
+  const { celebrate } = useToast();
   const [items, setItems] = useState<WatchItem[] | null>(null);
   const [title, setTitle] = useState("");
   const [type, setType] = useState(TYPES[0]);
   const [busy, setBusy] = useState(false);
+  const [pick, setPick] = useState<string | null>(null);
+  const [picking, setPicking] = useState(false);
 
   const load = useCallback(async () => {
     if (!roomId) return;
@@ -57,8 +61,7 @@ export default function WatchlistPage() {
       .update({ watched_together: !item.watched_together })
       .eq("id", item.id);
     if (!item.watched_together) {
-      await awardPoints(roomId, userId, "watched_together");
-      showPoints(POINTS.watched_together, "Watched together");
+      await award(roomId, userId, "watched_together");
     }
     await load();
     setBusy(false);
@@ -71,6 +74,21 @@ export default function WatchlistPage() {
 
   const queue = (items ?? []).filter((i) => !i.watched_together);
   const watched = (items ?? []).filter((i) => i.watched_together);
+
+  function decideForUs() {
+    if (queue.length < 2 || picking) return;
+    setPicking(true);
+    let spins = 0;
+    const interval = setInterval(() => {
+      setPick(queue[Math.floor(Math.random() * queue.length)].title);
+      spins++;
+      if (spins > 14) {
+        clearInterval(interval);
+        setPicking(false);
+        celebrate();
+      }
+    }, 90);
+  }
 
   return (
     <Shell title="Watchlist" subtitle="Movies & shows for two">
@@ -105,6 +123,29 @@ export default function WatchlistPage() {
           </button>
         </div>
       </form>
+
+      {queue.length >= 2 && (
+        <div className="mb-6">
+          <button
+            onClick={decideForUs}
+            disabled={picking}
+            className="w-full rounded-full border border-purple-200 bg-purple-50 py-2.5 text-sm font-medium text-purple-700 disabled:opacity-70"
+          >
+            🎲 Decide for us
+          </button>
+          {pick && (
+            <p
+              className={`mt-2 text-center text-sm ${
+                picking
+                  ? "text-neutral-400"
+                  : "font-semibold text-purple-700"
+              }`}
+            >
+              {picking ? pick : `Tonight: ${pick} 🍿`}
+            </p>
+          )}
+        </div>
+      )}
 
       {!items || loading ? (
         <Loading />

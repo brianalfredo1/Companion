@@ -122,6 +122,7 @@ export default function RankPage() {
               ["💧 8 glasses of water", POINTS.water_goal],
               ["✅ Finish a to-do", POINTS.todo_done],
               ["💌 Send a note", POINTS.note_sent],
+              ["💬 Daily question (both answer)", POINTS.daily_question],
               ["🎬 Watch together", POINTS.watched_together],
               ["🍜 Eat together", POINTS.ate_together],
               ["🕯️ Complete a date night", POINTS.date_night_completed],

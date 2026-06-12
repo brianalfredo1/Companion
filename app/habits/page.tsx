@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useProfile } from "@/lib/useProfile";
 import { useRealtime } from "@/lib/useRealtime";
-import { awardPoints, POINTS } from "@/lib/points";
+import { POINTS } from "@/lib/points";
 import Shell, { Loading, SectionLabel } from "@/components/Shell";
-import { useToast } from "@/components/Toast";
+import { useAward } from "@/components/useAward";
 import type { Habit } from "@/lib/types";
 
 function todayStr() {
@@ -15,7 +15,7 @@ function todayStr() {
 
 export default function HabitsPage() {
   const { loading, userId, profile, partner, roomId } = useProfile();
-  const { showPoints } = useToast();
+  const award = useAward();
   const [mine, setMine] = useState<Habit | null>(null);
   const [theirs, setTheirs] = useState<Habit | null>(null);
   const [fetched, setFetched] = useState(false);
@@ -65,13 +65,11 @@ export default function HabitsPage() {
     const wasDone = mine?.[field] ?? false;
     const updated = await upsertMine({ [field]: !wasDone });
     if (updated && !wasDone) {
-      if (field === "exercise_done") {
-        await awardPoints(roomId, userId, "exercise");
-        showPoints(POINTS.exercise, "Exercise done");
-      } else {
-        await awardPoints(roomId, userId, "sleep");
-        showPoints(POINTS.sleep, "Good night's sleep");
-      }
+      await award(
+        roomId,
+        userId,
+        field === "exercise_done" ? "exercise" : "sleep"
+      );
     }
     setBusy(false);
   }
@@ -83,8 +81,7 @@ export default function HabitsPage() {
     const next = Math.max(0, Math.min(8, count));
     const updated = await upsertMine({ water_count: next });
     if (updated && prev < 8 && next >= 8) {
-      await awardPoints(roomId, userId, "water_goal");
-      showPoints(POINTS.water_goal, "8 glasses of water");
+      await award(roomId, userId, "water_goal");
     }
     setBusy(false);
   }
