@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import AppFrame from "@/components/AppFrame";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,8 +30,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <div className="mx-auto flex min-h-screen max-w-[430px] flex-col justify-center bg-white px-6">
+    <AppFrame>
+      <div className="flex min-h-screen flex-col justify-center px-6 md:min-h-full">
         <div className="mb-10 text-center">
           <p className="mb-2 text-4xl">🤍</p>
           <h1 className="text-2xl font-semibold text-neutral-900">Us</h1>
@@ -71,6 +72,6 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </AppFrame>
   );
 }

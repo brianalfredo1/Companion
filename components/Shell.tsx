@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import AppFrame from "./AppFrame";
 
 export default function Shell({
   title,
@@ -13,8 +14,8 @@ export default function Shell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <div className="mx-auto min-h-screen max-w-[430px] bg-white px-5 pb-24 pt-6">
+    <AppFrame>
+      <div className="px-5 pb-24 pt-6">
         <header className="mb-6 flex items-center gap-3">
           <Link
             href="/dashboard"
@@ -32,7 +33,7 @@ export default function Shell({
         </header>
         {children}
       </div>
-    </div>
+    </AppFrame>
   );
 }
 

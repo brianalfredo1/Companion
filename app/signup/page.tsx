@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import AppFrame from "@/components/AppFrame";
 
 type Step = "account" | "room" | "invite-created" | "confirm-email";
 
@@ -125,8 +126,8 @@ export default function SignupPage() {
     "w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-400";
 
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <div className="mx-auto flex min-h-screen max-w-[430px] flex-col justify-center bg-white px-6">
+    <AppFrame>
+      <div className="flex min-h-screen flex-col justify-center px-6 py-10 md:min-h-full">
         <div className="mb-8 text-center">
           <p className="mb-2 text-4xl">🤍</p>
           <h1 className="text-2xl font-semibold text-neutral-900">Us</h1>
@@ -259,6 +260,6 @@ export default function SignupPage() {
           </div>
         )}
       </div>
-    </div>
+    </AppFrame>
   );
 }

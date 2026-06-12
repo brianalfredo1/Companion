@@ -7,6 +7,7 @@ import { useProfile } from "@/lib/useProfile";
 import { fetchTotalPoints, getRankInfo } from "@/lib/points";
 import { localDateKey } from "@/lib/dates";
 import { SectionLabel } from "@/components/Shell";
+import AppFrame from "@/components/AppFrame";
 import type { Countdown, DateNight, Goal, Note } from "@/lib/types";
 
 interface DashboardData {
@@ -147,8 +148,8 @@ export default function DashboardPage() {
 
   if (loading || !data || !profile) {
     return (
-      <div className="min-h-screen bg-neutral-100">
-        <div className="mx-auto min-h-screen max-w-[430px] space-y-4 bg-white px-5 pt-8">
+      <AppFrame>
+        <div className="space-y-4 px-5 pt-8">
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
@@ -156,7 +157,7 @@ export default function DashboardPage() {
             />
           ))}
         </div>
-      </div>
+      </AppFrame>
     );
   }
 
@@ -179,8 +180,8 @@ export default function DashboardPage() {
     Math.max(0, Math.ceil((new Date(d).getTime() - Date.now()) / 86400000));
 
   return (
-    <div className="min-h-screen bg-neutral-100">
-      <div className="mx-auto min-h-screen max-w-[430px] bg-white px-5 pb-16 pt-8">
+    <AppFrame>
+      <div className="px-5 pb-16 pt-8">
         {/* Header */}
         <header className="mb-6 flex items-start justify-between">
           <div>
@@ -401,7 +402,7 @@ export default function DashboardPage() {
           Sign out
         </button>
       </div>
-    </div>
+    </AppFrame>
   );
 }
 
